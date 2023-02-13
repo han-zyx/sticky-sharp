@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -8,13 +9,13 @@ namespace stickyNote
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(String[] args)
         {
-            ReadCommand();
-            Console.ReadLine();
+           ReadCommand();
+           Console.ReadLine();
         }
 
-        private static string NoteDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\Notes\";
+        private static string NoteDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\Sticky-sharp\";
 
         private static void ReadCommand()
         {
@@ -43,11 +44,19 @@ namespace stickyNote
                     Exit();
                     Main(null);
                     break;
+                default:
+                    Menu();
+                    Main(null);
+                    break;
             }
         }
 
         private static void NewNote()
         {
+            
+            Console.WriteLine("Enter your new File name : ");
+            string fileName = Console.ReadLine() + ".txt";
+            
             Console.WriteLine("Enter Your Note : \n");
             string note = Console.ReadLine(); //your note
 
@@ -56,14 +65,12 @@ namespace stickyNote
             Note.CheckCharacters = false;
             Note.ConformanceLevel = ConformanceLevel.Auto;
             Note.Indent = true;
-
-            string FileName = DateTime.Now.ToString("dd-MM-yy") + ".xml";
-
-            using (XmlWriter NewNote = XmlWriter.Create(NoteDirectory + FileName, Note))
+            
+            using (XmlWriter NewNote = XmlWriter.Create(NoteDirectory + fileName, Note))
             {
                 NewNote.WriteStartDocument();
                 NewNote.WriteStartElement("Note");
-                NewNote.WriteElementString("body",input);
+                NewNote.WriteElementString("body",note);
                 NewNote.WriteEndElement();
                 
                 NewNote.Flush();
@@ -75,12 +82,13 @@ namespace stickyNote
 
         private static void EditNote()
         {
-            Console.WriteLine("please Enter Your File name : \n");
+            Console.WriteLine("please Enter Your File name with '.txt' : ");
 
             string fileName = Console.ReadLine().ToLower(); // get userInput
 
-            if (File.Exists(NoteDirectory + fileName))
+            if (File.Exists(NoteDirectory + fileName ))
             {
+                
                 XmlDocument doc = new XmlDocument();
                 
                 //load the document
@@ -115,14 +123,83 @@ namespace stickyNote
 
         private static void ReadNote()
         {
-            Console.WriteLine("Please enter file name : \n");
+            Console.WriteLine("please Enter Your File name with '.txt' : ");
 
             string fileName = Console.ReadLine().ToLower();
 
             if (File.Exists(NoteDirectory + fileName))
             {
+                XmlDocument Doc = new XmlDocument();
+                Doc.Load(NoteDirectory+fileName);
                 
+                Console.WriteLine(Doc.SelectSingleNode("//body").InnerText);
             }
+            else
+            {
+                Console.WriteLine("File not Found :( ");
+            }
+        }
+
+        private static void DeleteNote()
+        {
+            Console.WriteLine("please Enter Your File name with '.txt' : ");
+            string fileName = Console.ReadLine();
+
+            if (File.Exists(NoteDirectory + fileName))
+            {
+                Console.WriteLine(Environment.NewLine + "Are you sure you wish to delete the note? Y/N ");
+                string selection = Console.ReadLine().ToLower();
+
+                if (selection == "y")
+                {
+                    try
+                    {
+                        File.Delete(NoteDirectory + fileName);
+                        Console.WriteLine("File has been deleted \n ");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("File unable to delete ");
+                    }
+                }
+                else if ( selection == "n")
+                {
+                    Main(null);
+                }
+                else
+                {
+                    Console.WriteLine("File does not exist \n");
+                }
+            }
+        }
+
+        private static void Exit()
+        {
+            Console.WriteLine("Do you want to exit? Y/N ");
+            string exit = Console.ReadLine().ToLower();
+
+            if (exit == "y")
+            {
+                Environment.Exit(0);
+            }else if (exit == "n")
+            {
+                Main(null);
+            }
+            else
+            {
+                Exit();
+            }
+        }
+
+        private static void Menu()
+        {
+            Console.WriteLine("-------------WELCOME STICKY SHARP-------------");
+            Console.WriteLine("");
+            Console.WriteLine("----------type 'new' to add new note----------");
+            Console.WriteLine("----------type 'edit' to edit note------------");
+            Console.WriteLine("----------type 'read' to read note------------");
+            Console.WriteLine("----------type 'delete' to delete note--------");
+            Console.WriteLine("----------type 'exit' to exit-----------------");
         }
     }
     
